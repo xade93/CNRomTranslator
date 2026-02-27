@@ -8,7 +8,7 @@ printf "%s\n" *.iso *.cso 2>/dev/null  # e.g. for PSP ROMs
 and for each filename it attempts to fuzzily match CN name to canonical English name via (e.g.) `rom_name_cn/Sony - PlayStation Portable.csv`, and for each confidence below threshol (e.g. 80) it interactively ask for manual intervention. Eventually it generates a gamelist.xml compatible with e.g. ES-DE which can be imported to handhelds and scrapers can take it from there.
 
 The benefit of this method is 
-1. If you already have large amount of ROMs on sdcard, this wont involve costy file move, delete, upload to PC etc. Even your original filename is preserved as it may hint information about translators. Only single XML is changed for each system. For the same reason if you have some image assets assets beforehand this wont lose it.
+1. If you already have large amount of ROMs on sdcard, this wont involve costy file move, delete, upload to PC etc. Even your original filename is preserved as it may hint information about translators. Only single XML is changed for each system. For the same reason if you have some image assets beforehand this wont lose it.
 2. Its incredibly easy to mass perform, even when you dont have a SD card. `adb shell` into the device, preview generated XML, backup & replace XML, start scraper.
 3. Before you confirm the XML the operation is non-destructive. Even after replacing XML your original image assets are preserved and are *likely* still displayed (unless you have nonstandard image names / extra text metadata / rating etc, in that case we need to merge old XML with new one, which is a feature I dont need)
 
@@ -34,4 +34,4 @@ https://github.com/user-attachments/assets/b0b4ca19-0b24-4aaf-be62-0f7afaf969c4
 
 ## TBD
 
-Incorrect translations mostly come from 2nd / 3rd version of a title. Need to fix this scenario
+Incorrect translations mostly due to fuzzy match is bad at recognizing sequel numbers. Need to fix this
