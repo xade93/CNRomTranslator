@@ -22,7 +22,7 @@ You can use it this way:
 ```
 
 On my PSP library this method is able to correctly scrape at least 70% of my library in one pass.
-
+To refine rest of games efficiently, use LLM to check XML. Manually fix incorrect translations. There shouldn't be many.
 
 https://github.com/user-attachments/assets/b0b4ca19-0b24-4aaf-be62-0f7afaf969c4
 
