@@ -27,9 +27,11 @@ On my PSP library this method is able to correctly scrape at least 70% of my lib
 
 To refine rest of games efficiently, use LLM to check XML. Manually fix incorrect translations. There shouldn't be many. You may also want to translate name back to CN after scraping.
 
-<img width="655" height="829" alt="image" src="https://github.com/user-attachments/assets/4404b896-b75d-4d79-b4bd-f181897dc878" />
-
 Video:
 
 https://github.com/user-attachments/assets/b0b4ca19-0b24-4aaf-be62-0f7afaf969c4
 
+
+## TBD
+
+Incorrect translations mostly come from 2nd / 3rd version of a title. Need to fix this scenario
