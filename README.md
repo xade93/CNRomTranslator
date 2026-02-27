@@ -20,3 +20,9 @@ You can use it this way:
 # install requirements manually
 % python rom_fuzzy_translate.py "Sony - PlayStation Portable" --csv-dir ./rom-name-cn --th 80
 ```
+
+On my PSP library this method is able to correctly scrape at least 70% of my library in one pass.
+
+
+https://github.com/user-attachments/assets/b0b4ca19-0b24-4aaf-be62-0f7afaf969c4
+
