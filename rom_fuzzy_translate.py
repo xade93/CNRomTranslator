@@ -62,6 +62,38 @@ def ask_choice(rf, score, stem_cn, csv_cn, csv_en):
     return csv_en if ans == "y" else stem_cn
 
 
+def digits_set(s: str) -> set[str]:
+    # Keep only small "sequel-ish" numbers; ignore years like 1999/2000 etc.
+    return {m for m in re.findall(r"\d{1,2}", s) if 1 <= int(m) <= 30}
+
+
+def best_match(query_raw: str, query_norm: str, cn_norm: list[str]) -> tuple[int, int]:
+    """
+    Return (idx in cn_norm/cn_list, score). Uses better scorer + deterministic tie-breaks:
+      1) exact normalized match
+      2) digit-set equality when query has digits (e.g. 2 vs none)
+      3) longer candidate (more specific) wins
+    """
+    top = process.extract(query_norm, cn_norm, scorer=fuzz.WRatio, limit=8)
+    if not top:
+        return -1, 0
+
+    best_score = int(top[0][1])
+    tied = [t for t in top if int(t[1]) == best_score]
+
+    qd = digits_set(query_raw)
+
+    def key(t):
+        cand_norm, _score, idx = t
+        cd = digits_set(cand_norm)
+        exact = (cand_norm == query_norm)
+        digit_ok = (qd == cd) if qd else True
+        return (exact, digit_ok, len(cand_norm))
+
+    best = max(tied, key=key)
+    return int(best[2]), int(best[1])
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("system")
@@ -90,9 +122,8 @@ def main():
         stem = os.path.splitext(rf)[0] or rf
         stem_n = norm(stem)
 
-        best = process.extractOne(stem_n, cn_norm, scorer=fuzz.token_set_ratio)
-        if best:
-            idx, score = best[2], int(best[1])
+        idx, score = best_match(stem, stem_n, cn_norm)
+        if idx >= 0:
             csv_cn = cn_list[idx]
             csv_en = cn2en.get(csv_cn, "")
         else:
