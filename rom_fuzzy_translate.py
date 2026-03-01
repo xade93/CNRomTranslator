@@ -237,11 +237,22 @@ def main():
         return 2
 
     total, auto_ok, prompted = len(roms), 0, 0
+    non_cn = 0
     results = []
     pending_idx = []
 
     for rf in roms:
         stem = os.path.splitext(rf)[0] or rf
+
+        # if the title contains no Chinese characters at all, treat it as
+        # already English and skip the fuzzy matching logic.  Write the
+        # original name straight to the XML and count it in statistics.
+        if not re.search(r"[\u4e00-\u9fff]", stem):
+            non_cn += 1
+            auto_ok += 1  # count toward auto-handled titles
+            results.append({"rf": rf, "stem": stem, "csv_cn": "", "csv_en": "", "score": 0, "chosen": stem, "non_cn": True})
+            continue
+
         stem_n = norm(stem)
         stem_n_alias = apply_alias(stem_n, alias_map)
         stem_n_seq = seq_normalize(stem_n_alias).lower()
@@ -300,11 +311,14 @@ def main():
 
     for rec in results:
         fn = rec.get("rf")
-        detected_cn = rec.get("csv_cn") or ""
-        detected_en = rec.get("csv_en") or ""
         chosen = rec.get("chosen") or rec.get("stem")
-        # line: <filename> -> <CN detected name> -> <EN detected name or chosen>
-        print(f"{fn} -> {detected_cn} -> {chosen}", file=sys.stderr)
+        if rec.get("non_cn"):
+            # non-Chinese titles: show that we skipped matching
+            print(f"{fn} -> (non-Chinese) -> {chosen}", file=sys.stderr)
+        else:
+            detected_cn = rec.get("csv_cn") or ""
+            #line: <filename> -> <CN detected name> -> <EN detected name or chosen>
+            print(f"{fn} -> {detected_cn} -> {chosen}", file=sys.stderr)
 
     # Write XML to hard-coded file
     out = ['<?xml version="1.0"?>', "<gameList>"]
@@ -324,6 +338,7 @@ def main():
     pct = lambda x: f"{x*100/total:.1f}%" if total else "0.0%"
     print(
         f"\n[INFO] Total: {total}\n"
+        f"[INFO] Non-Chinese (auto-filled): {non_cn} ({pct(non_cn)})\n"
         f"[INFO] Auto-accepted (>= {args.th}): {auto_ok} ({pct(auto_ok)})\n"
         f"[INFO] Prompted (< {args.th}): {prompted} ({pct(prompted)})\n",
         file=sys.stderr,
