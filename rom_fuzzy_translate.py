@@ -49,17 +49,33 @@ def load_csv(csv_path):
         return cn_list, cn2en
 
 
-def ask_choice(rf, score, stem_cn, csv_cn, csv_en):
+def ask_choice(rf, score, stem_cn, csv_cn, csv_en, remaining: int):
     print(
         f"\n[LOW] ({score}) {rf}\n"
         f"  File CN : {stem_cn}\n"
         f"  CSV  CN : {csv_cn}\n"
         f"  CSV  EN : {csv_en}\n"
-        f"Use EN match? [y/N] (default keep CN)",
+        f"  Remaining to review: {remaining}\n",
         file=sys.stderr,
     )
-    ans = input("> ").strip().lower()
-    return csv_en if ans == "y" else stem_cn
+    print(
+        "Choose: [a]ccept CSV EN, [k]eep original, [m]anual input (default keep)",
+        file=sys.stderr,
+    )
+    ans = input("> ").strip()
+    if not ans:
+        return stem_cn
+    a = ans.lower()
+    if a in ("a", "y", "yes"):
+        return csv_en
+    if a in ("k", "keep"):
+        return stem_cn
+    if a in ("m", "i", "man", "manual"):
+        print("Enter manual name (empty to keep original):", file=sys.stderr)
+        manual = input("name> ").strip()
+        return manual if manual else stem_cn
+    # fallback
+    return stem_cn
 
 
 def digits_set(s: str) -> set[str]:
@@ -117,6 +133,7 @@ def main():
 
     total, auto_ok, prompted = len(roms), 0, 0
     entries = []
+    pending = []
 
     for rf in roms:
         stem = os.path.splitext(rf)[0] or rf
@@ -136,9 +153,25 @@ def main():
             auto_ok += 1
         else:
             prompted += 1
-            disp = ask_choice(rf, score, stem, csv_cn, csv_en)
+            pending.append({
+                "rf": rf,
+                "score": score,
+                "stem": stem,
+                "csv_cn": csv_cn,
+                "csv_en": csv_en,
+            })
+            disp = None
 
-        entries.append((rf, disp))
+        if disp is not None:
+            entries.append((rf, disp))
+
+    # Second pass: interactive review of pending low-confidence matches
+    if pending:
+        print(f"\n[INFO] {len(pending)} titles require human review...\n", file=sys.stderr)
+        for i, it in enumerate(pending):
+            remaining = len(pending) - i
+            disp = ask_choice(it["rf"], it["score"], it["stem"], it["csv_cn"], it["csv_en"], remaining)
+            entries.append((it["rf"], disp))
 
     # Write XML
     out = ['<?xml version="1.0"?>', "<gameList>"]
